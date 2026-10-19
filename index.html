@@ -1,0 +1,475 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Escarpment Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky header + delivery strip, category rail, product grid; cart as right drawer; checkout as full overlay with order summary column */
+:root{
+  --bg:#EEF1EC; --surface:#FFFFFF; --sunk:#E3E8E2; --ink:#18221D; --muted:#5A6760; --line:#D2DAD3;
+  --green:#1D5C43; --green-ink:#FFFFFF; --molten:#F0B23A; --molten-ink:#2A1C00; --danger:#B3261E;
+  --display:"Archivo",ui-sans-serif,system-ui,sans-serif; --body:"Public Sans",ui-sans-serif,system-ui,sans-serif;
+  --r:10px; --shadow:0 10px 30px rgba(20,40,30,.14);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111814; --surface:#18211C; --sunk:#202B25; --ink:#E7EEE9; --muted:#9AA9A0; --line:#2C3932;
+  --green:#4FB386; --green-ink:#08140E; --molten:#F2BC52; --molten-ink:#2A1C00; --danger:#F08A80;
+  --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111814; --surface:#18211C; --sunk:#202B25; --ink:#E7EEE9; --muted:#9AA9A0; --line:#2C3932;
+  --green:#4FB386; --green-ink:#08140E; --molten:#F2BC52; --molten-ink:#2A1C00; --danger:#F08A80;
+  --shadow:0 10px 30px rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:14px;padding-block:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:900;font-stretch:115%;font-size:22px;letter-spacing:-.01em;line-height:1;display:flex;flex-direction:column}
+.brand small{font-family:var(--body);font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.search{flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 14px}
+.search input{border:0;background:transparent;outline:0;width:100%;min-width:0}
+.cartbtn{display:flex;align-items:center;gap:10px;background:var(--green);color:var(--green-ink);border:0;border-radius:999px;padding:9px 16px;font-weight:700}
+.cartbtn .count{background:var(--molten);color:var(--molten-ink);border-radius:999px;min-width:22px;padding:0 6px;text-align:center;font-size:13px}
+
+.strip{background:var(--green);color:var(--green-ink)}
+.strip .wrap{display:flex;gap:10px 22px;flex-wrap:wrap;align-items:center;padding-block:8px;font-size:13.5px}
+.strip b{font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--molten);color:var(--molten-ink);border-radius:999px;padding:2px 10px;font-weight:700;font-size:12.5px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;padding-block:28px 12px;align-items:end}
+.hero h1{font-family:var(--display);font-weight:900;font-stretch:72%;font-size:clamp(40px,7vw,78px);line-height:.92;margin:0;letter-spacing:-.01em;text-wrap:balance;text-transform:uppercase}
+.hero h1 em{font-style:normal;color:var(--green)}
+.hero p{color:var(--muted);max-width:52ch;margin:14px 0 0}
+.check{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:10px}
+.check label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.check .row{display:flex;gap:8px}
+.check input{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;text-transform:uppercase}
+.btn{border:0;border-radius:8px;padding:10px 16px;font-weight:700;background:var(--green);color:var(--green-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.wide{width:100%;padding:14px;font-size:16px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.msg{font-size:13.5px;min-height:1.2em}
+.msg.ok{color:var(--green)} .msg.bad{color:var(--danger)}
+
+/* catalogue */
+.cats{display:flex;gap:8px;overflow-x:auto;padding-block:18px 14px;scrollbar-width:none}
+.cats button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px}
+.cats button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:14px;padding-bottom:60px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.thumb{aspect-ratio:4/3;max-width:100%;border-radius:8px;display:grid;place-items:center;font-size:46px;position:relative}
+.tag{position:absolute;left:8px;top:8px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--surface);color:var(--green);border-radius:4px;padding:2px 6px}
+.card h3{margin:0;font-size:15px;font-weight:600;line-height:1.3}
+.card .unit{color:var(--muted);font-size:13px}
+.card .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.price{font-family:var(--display);font-weight:800;font-size:18px}
+.add{border:0;background:var(--green);color:var(--green-ink);border-radius:8px;padding:7px 12px;font-weight:700}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.qty button{border:0;background:var(--sunk);width:30px;height:32px;font-weight:700}
+.qty span{min-width:30px;text-align:center;font-weight:700}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px 0}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,20,15,.45);z-index:40}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--surface);z-index:41;display:flex;flex-direction:column;box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.dhead{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--line)}
+.dhead h2,.co h2{font-family:var(--display);font-weight:800;font-stretch:90%;margin:0;font-size:22px}
+.x{border:0;background:var(--sunk);border-radius:999px;width:34px;height:34px;font-size:18px}
+.lines{flex:1;overflow-y:auto;padding:8px 16px;display:grid;gap:4px;align-content:start}
+.line{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.line .ico{width:44px;height:44px;border-radius:8px;display:grid;place-items:center;font-size:24px}
+.line .nm{font-weight:600;font-size:14px;line-height:1.25}
+.line .sub{color:var(--muted);font-size:12.5px}
+.totals{padding:14px 16px;border-top:1px solid var(--line);display:grid;gap:6px}
+.trow{display:flex;justify-content:space-between;font-size:14px}
+.trow.grand{font-family:var(--display);font-weight:800;font-size:20px;margin-top:4px}
+.progress{height:6px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.progress i{display:block;height:100%;background:var(--molten)}
+.hint{font-size:13px;color:var(--muted)}
+
+/* checkout */
+.co{position:fixed;inset:0;z-index:50;background:var(--bg);overflow-y:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.cohead{display:flex;justify-content:space-between;align-items:center;padding-block:16px;gap:12px}
+.cogrid{display:grid;grid-template-columns:1fr 360px;gap:22px;padding-bottom:40px;align-items:start}
+.cogrid > *{min-width:0}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:14px;margin-bottom:16px}
+.step h3{margin:0;font-family:var(--display);font-weight:800;font-size:17px;display:flex;gap:10px;align-items:center}
+.step h3 .n{width:24px;height:24px;border-radius:999px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:13px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:grid;gap:4px;min-width:0}
+.f.full{grid-column:1/-1}
+.f label{font-size:12.5px;font-weight:600;color:var(--muted)}
+.f input,.f select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;width:100%;min-width:0}
+.f input[aria-invalid="true"]{border-color:var(--danger)}
+.days{display:flex;gap:8px;flex-wrap:wrap}
+.days button,.slots button,.pays button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;text-align:left}
+.days button[aria-pressed="true"],.slots button[aria-pressed="true"],.pays button[aria-pressed="true"]{border-color:var(--green);box-shadow:inset 0 0 0 1px var(--green);background:var(--surface)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.slots button small,.days button small{display:block;color:var(--muted);font-size:12px}
+.slots button:disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through}
+.pays{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pays button{font-weight:700;text-align:center;padding:14px 8px;font-size:14px}
+.paypanel{background:var(--sunk);border-radius:8px;padding:14px;display:grid;gap:12px}
+.wallet{border:0;border-radius:8px;padding:14px;font-weight:700;width:100%;background:var(--ink);color:var(--bg)}
+.demo{font-size:12.5px;color:var(--muted);border-left:3px solid var(--molten);padding-left:10px}
+.summary{position:sticky;top:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:10px}
+.summary .mini{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.summary .mini span:first-child{min-width:0}
+.done{max-width:560px;margin:8vh auto 40px;text-align:center;display:grid;gap:14px;justify-items:center}
+.done .big{font-family:var(--display);font-weight:900;font-stretch:75%;font-size:56px;text-transform:uppercase;line-height:.95;margin:0}
+.done .card2{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;width:100%;text-align:left;display:grid;gap:6px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;z-index:60;font-size:14px}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .cogrid{grid-template-columns:1fr}
+  .summary{position:static;order:-1}
+}
+@media (max-width:520px){
+  .fields{grid-template-columns:1fr}
+  .pays{grid-template-columns:1fr 1fr}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .thumb{font-size:36px}
+  .card .foot{flex-wrap:wrap}
+  .cartbtn .lbl{display:none}
+}
+@media (prefers-reduced-motion:no-preference){
+  .drawer{animation:slide .22s ease-out}
+  @keyframes slide{from{transform:translateX(30px);opacity:.6}}
+}
+</style>
+
+<header class="top">
+  <div class="wrap bar">
+    <div class="brand">ESCARPMENT MARKET<small>Hamilton groceries, same day</small></div>
+    <label class="search" for="q"><span aria-hidden="true">⌕</span><input id="q" type="search" placeholder="Search apples, milk, bread…" autocomplete="off"></label>
+    <button class="cartbtn" id="openCart" aria-label="Open cart"><span class="lbl">Cart</span><span class="num" id="cartTotalBtn">$0.00</span><span class="count num" id="cartCount">0</span></button>
+  </div>
+  <div class="strip"><div class="wrap">
+    <span class="pill" id="cutoffPill">Same-day</span>
+    <span id="cutoffText">Order by <b>4:00 pm</b> for delivery tonight</span>
+    <span>Free delivery over <b>$75</b></span>
+    <span>Lower City · Mountain · Westdale · Dundas · Ancaster · Stoney Creek</span>
+  </div></div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1>Groceries up the <em>Mountain</em> and down by tonight.</h1>
+      <p>Ontario produce, fresh bakery and pantry staples, picked by Hamilton shoppers and delivered in two-hour windows from 10 am to 10 pm, seven days a week.</p>
+    </div>
+    <form class="check" id="pcForm" novalidate>
+      <label for="pc">Do we deliver to you?</label>
+      <div class="row"><input id="pc" maxlength="7" placeholder="L8P 4R5" autocomplete="postal-code"><button class="btn" type="submit">Check</button></div>
+      <div class="msg" id="pcMsg" aria-live="polite">Enter a Hamilton postal code (L8, L9 or L0R).</div>
+    </form>
+  </section>
+
+  <nav class="cats" id="cats" aria-label="Categories"></nav>
+  <section class="grid" id="grid" aria-live="polite"></section>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Cart">
+  <div class="dhead"><h2>Your cart</h2><button class="x" id="closeCart" aria-label="Close cart">×</button></div>
+  <div class="lines" id="lines"></div>
+  <div class="totals" id="drawerTotals"></div>
+</aside>
+
+<section class="co" id="checkout" hidden aria-label="Checkout">
+  <div class="wrap">
+    <div class="cohead"><h2>Checkout</h2><button class="btn ghost" id="backToShop">← Back to shopping</button></div>
+    <div class="cogrid" id="coBody">
+      <div>
+        <div class="step">
+          <h3><span class="n">1</span>Delivery address</h3>
+          <div class="fields">
+            <div class="f full"><label for="name">Full name</label><input id="name" autocomplete="name" placeholder="Jordan Patel"></div>
+            <div class="f full"><label for="street">Street address</label><input id="street" autocomplete="street-address" placeholder="120 King St W, Unit 4"></div>
+            <div class="f"><label for="area">Neighbourhood</label>
+              <select id="area"><option>Lower City</option><option>Mountain</option><option>Westdale</option><option>Dundas</option><option>Ancaster</option><option>Stoney Creek</option><option>Waterdown</option></select></div>
+            <div class="f"><label for="pc2">Postal code</label><input id="pc2" maxlength="7" autocomplete="postal-code" placeholder="L8P 4R5"></div>
+            <div class="f"><label for="phone">Phone</label><input id="phone" type="tel" autocomplete="tel" placeholder="905-555-0142"></div>
+            <div class="f"><label for="email">Email for receipt</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
+            <div class="f full"><label for="notes">Delivery notes (optional)</label><input id="notes" placeholder="Buzzer 204, leave with concierge"></div>
+          </div>
+        </div>
+
+        <div class="step">
+          <h3><span class="n">2</span>Delivery window</h3>
+          <div class="days" id="days"></div>
+          <div class="slots" id="slots"></div>
+        </div>
+
+        <div class="step">
+          <h3><span class="n">3</span>Payment</h3>
+          <div class="pays" id="pays" role="group" aria-label="Payment method">
+            <button data-pay="card" aria-pressed="true">Card</button>
+            <button data-pay="paypal" aria-pressed="false">PayPal</button>
+            <button data-pay="apple" aria-pressed="false">Apple Pay</button>
+            <button data-pay="samsung" aria-pressed="false">Samsung Pay</button>
+          </div>
+          <div class="paypanel" id="payPanel"></div>
+          <p class="demo">Prototype checkout. No payment is processed and nothing is charged; card details are never stored or sent.</p>
+        </div>
+      </div>
+
+      <aside class="summary" id="summary"></aside>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+const CATS = ["All","Produce","Dairy & Eggs","Bakery","Meat & Fish","Pantry","Frozen","Drinks"];
+const TINT = {"Produce":"#DCEBD3","Dairy & Eggs":"#E6EEF5","Bakery":"#F1E3CC","Meat & Fish":"#F2DAD6","Pantry":"#EDE6D4","Frozen":"#DDE9EF","Drinks":"#E7E0F0"};
+const P = [
+ ["p1","Honeycrisp apples","Produce","3 lb bag",6.99,"🍎","Ontario"],
+ ["p2","Niagara Bartlett pears","Produce","per lb",2.49,"🍐","Ontario"],
+ ["p3","Bananas","Produce","per lb",0.79,"🍌"],
+ ["p4","Holland Marsh carrots","Produce","2 lb bag",2.99,"🥕","Ontario"],
+ ["p5","Field tomatoes","Produce","per lb",2.99,"🍅","Ontario"],
+ ["p6","Baby spinach","Produce","312 g clamshell",4.49,"🥬"],
+ ["p7","Hass avocados","Produce","bag of 4",5.99,"🥑"],
+ ["p8","Yellow onions","Produce","3 lb bag",3.49,"🧅","Ontario"],
+ ["d1","2% milk","Dairy & Eggs","4 L bag",6.49,"🥛","Ontario"],
+ ["d2","Large brown eggs","Dairy & Eggs","dozen",5.29,"🥚","Ontario"],
+ ["d3","Aged white cheddar","Dairy & Eggs","400 g",8.99,"🧀"],
+ ["d4","Plain Greek yogurt","Dairy & Eggs","750 g",6.79,"🥣"],
+ ["d5","Salted butter","Dairy & Eggs","454 g",6.99,"🧈"],
+ ["b1","Sourdough loaf","Bakery","750 g, baked today",6.50,"🍞","Local"],
+ ["b2","Butter croissants","Bakery","4 pack",7.49,"🥐","Local"],
+ ["b3","Whole wheat pitas","Bakery","6 pack",3.49,"🫓"],
+ ["b4","Everything bagels","Bakery","6 pack",5.99,"🥯","Local"],
+ ["m1","Chicken breasts, boneless","Meat & Fish","approx. 1 kg",15.99,"🍗","Ontario"],
+ ["m2","Lean ground beef","Meat & Fish","454 g",7.99,"🥩","Ontario"],
+ ["m3","Atlantic salmon fillet","Meat & Fish","approx. 400 g",11.49,"🐟"],
+ ["m4","Halal lamb chops","Meat & Fish","approx. 500 g",16.99,"🍖"],
+ ["t1","Basmati rice","Pantry","4 kg",13.99,"🍚"],
+ ["t2","Spaghetti","Pantry","900 g",2.99,"🍝"],
+ ["t3","Ontario maple syrup","Pantry","500 ml, amber",11.99,"🍁","Ontario"],
+ ["t4","Extra virgin olive oil","Pantry","1 L",14.49,"🫒"],
+ ["t5","Red lentils","Pantry","1.8 kg",6.99,"🫘"],
+ ["f1","Frozen peas","Frozen","750 g",3.29,"🟢"],
+ ["f2","Vanilla ice cream","Frozen","1.5 L",6.49,"🍨"],
+ ["f3","Wild blueberries","Frozen","600 g",7.99,"🫐"],
+ ["k1","Sparkling water","Drinks","12 × 355 ml",6.99,"💧"],
+ ["k2","Orange juice, not from concentrate","Drinks","1.54 L",5.49,"🍊"],
+ ["k3","Medium roast coffee beans","Drinks","340 g, roasted locally",14.99,"☕","Local"],
+].map(([id,name,cat,unit,price,ico,tag])=>({id,name,cat,unit,price,ico,tag}));
+const BY = Object.fromEntries(P.map(p=>[p.id,p]));
+const HST = 0.13, FEE = 4.99, FREE_OVER = 75, MIN_ORDER = 25, CUTOFF_H = 16;
+
+const $ = s => document.querySelector(s);
+const money = n => "$" + n.toFixed(2);
+let cart = {}; try { cart = JSON.parse(localStorage.getItem("em-cart")||"{}") || {}; } catch(e){ cart = {}; }
+for (const k in cart) if (!BY[k] || !(cart[k] > 0)) delete cart[k];
+let cat = "All", query = "", pay = "card", dayIdx = 0, slot = null;
+const save = () => { try { localStorage.setItem("em-cart", JSON.stringify(cart)); } catch(e){} };
+
+function toast(t){ const el=$("#toast"); el.textContent=t; el.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>el.hidden=true,1800); }
+
+function totals(){
+  let items=0, sub=0;
+  for (const [id,q] of Object.entries(cart)){ items+=q; sub+=BY[id].price*q; }
+  const fee = sub===0||sub>=FREE_OVER ? 0 : FEE;
+  const tax = (sub+fee)*HST;
+  return {items, sub, fee, tax, total: sub+fee+tax};
+}
+function setQty(id,q){ if(q<=0) delete cart[id]; else cart[id]=Math.min(q,30); save(); renderAll(); }
+
+/* categories + grid */
+function renderCats(){
+  $("#cats").innerHTML = CATS.map(c=>`<button aria-pressed="${c===cat}" data-cat="${c}">${c}</button>`).join("");
+}
+function qtyCtl(id){ const q=cart[id]||0;
+  return q ? `<span class="qty"><button data-dec="${id}" aria-label="Remove one">−</button><span class="num">${q}</span><button data-inc="${id}" aria-label="Add one">+</button></span>`
+           : `<button class="add" data-inc="${id}">Add</button>`; }
+function renderGrid(){
+  const ql=query.trim().toLowerCase();
+  const list=P.filter(p=>(cat==="All"||p.cat===cat)&&(!ql||p.name.toLowerCase().includes(ql)||p.cat.toLowerCase().includes(ql)));
+  $("#grid").innerHTML = list.length ? list.map(p=>`
+    <article class="card">
+      <div class="thumb" style="background:${TINT[p.cat]}">${p.tag?`<span class="tag">${p.tag}</span>`:""}<span aria-hidden="true">${p.ico}</span></div>
+      <h3>${p.name}</h3><div class="unit">${p.unit}</div>
+      <div class="foot"><span class="price num">${money(p.price)}</span>${qtyCtl(p.id)}</div>
+    </article>`).join("") : `<div class="empty">Nothing matches “${ql.replace(/</g,"&lt;")}”. Try another search.</div>`;
+}
+
+/* drawer */
+function renderDrawer(){
+  const t=totals(), ids=Object.keys(cart);
+  $("#lines").innerHTML = ids.length ? ids.map(id=>{const p=BY[id];return `
+    <div class="line"><div class="ico" style="background:${TINT[p.cat]}" aria-hidden="true">${p.ico}</div>
+      <div><div class="nm">${p.name}</div><div class="sub num">${p.unit} · ${money(p.price)}</div></div>
+      <div style="display:grid;gap:4px;justify-items:end"><span class="num" style="font-weight:700">${money(p.price*cart[id])}</span>${qtyCtl(id)}</div></div>`}).join("")
+    : `<div class="empty">Your cart is empty.<br>Add something fresh from the shelves.</div>`;
+  const left=Math.max(0,FREE_OVER-t.sub);
+  $("#drawerTotals").innerHTML = `
+    ${t.sub>0?`<div class="hint">${left>0?`Add <b class="num">${money(left)}</b> more for free delivery`:"Free delivery unlocked"}</div>
+    <div class="progress"><i style="width:${Math.min(100,t.sub/FREE_OVER*100)}%"></i></div>`:""}
+    <div class="trow"><span>Subtotal</span><span class="num">${money(t.sub)}</span></div>
+    <div class="trow"><span>Delivery</span><span class="num">${t.fee?money(t.fee):"Free"}</span></div>
+    <div class="trow"><span>HST (13%)</span><span class="num">${money(t.tax)}</span></div>
+    <div class="trow grand"><span>Total</span><span class="num">${money(t.total)}</span></div>
+    ${t.sub>0&&t.sub<MIN_ORDER?`<div class="msg bad">Minimum order is ${money(MIN_ORDER)}.</div>`:""}
+    <button class="btn wide" id="goCheckout" ${t.sub<MIN_ORDER?"disabled":""}>Checkout</button>`;
+}
+function renderHeader(){ const t=totals(); $("#cartCount").textContent=t.items; $("#cartTotalBtn").textContent=money(t.total); }
+
+/* delivery windows */
+function dayList(){ const now=new Date(), out=[];
+  for(let i=0;i<3;i++){ const d=new Date(now); d.setDate(now.getDate()+i); out.push(d); } return out; }
+function slotsFor(i){ const now=new Date(), res=[];
+  for(let h=10;h<22;h+=2){
+    let ok=true;
+    if(i===0){ ok = now.getHours()<CUTOFF_H && h >= now.getHours()+2; }
+    res.push({h,ok,label:`${fmtH(h)} – ${fmtH(h+2)}`});
+  } return res; }
+function fmtH(h){ const ap=h>=12?"pm":"am"; const x=h%12||12; return `${x}:00 ${ap}`; }
+function dayName(d,i){ return i===0?"Today":i===1?"Tomorrow":d.toLocaleDateString("en-CA",{weekday:"long"}); }
+function renderSlots(){
+  const days=dayList();
+  $("#days").innerHTML = days.map((d,i)=>{const open=slotsFor(i).filter(s=>s.ok).length;
+    return `<button data-day="${i}" aria-pressed="${i===dayIdx}">${dayName(d,i)}<small>${d.toLocaleDateString("en-CA",{month:"short",day:"numeric"})} · ${open?open+" windows":"Closed"}</small></button>`}).join("");
+  const s=slotsFor(dayIdx);
+  $("#slots").innerHTML = s.map(x=>{const fee=x.h>=18?"Evening":"";return `<button data-slot="${x.h}" ${x.ok?"":"disabled"} aria-pressed="${slot&&slot.day===dayIdx&&slot.h===x.h}">${x.label}<small>${x.ok?(dayIdx===0?"Same-day":"Available")+(fee?" · "+fee:""):"Unavailable"}</small></button>`}).join("");
+}
+function renderCutoff(){ const n=new Date();
+  if(n.getHours()<CUTOFF_H){ const mins=(CUTOFF_H*60)-(n.getHours()*60+n.getMinutes()); const h=Math.floor(mins/60), m=mins%60;
+    $("#cutoffPill").textContent=`${h?h+"h ":""}${m}m left`; $("#cutoffText").innerHTML=`Order by <b>4:00 pm</b> for delivery tonight`; }
+  else { $("#cutoffPill").textContent="Next day"; $("#cutoffText").innerHTML=`Same-day cutoff passed. Book <b>tomorrow from 10:00 am</b>`; }
+}
+
+/* payment */
+function renderPay(){
+  document.querySelectorAll("#pays button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.pay===pay));
+  const t=totals(), amt=money(t.total);
+  const panel=$("#payPanel");
+  if(pay==="card"){
+    panel.innerHTML=`<div class="fields">
+      <div class="f full"><label for="ccname">Name on card</label><input id="ccname" autocomplete="cc-name"></div>
+      <div class="f full"><label for="ccnum">Card number</label><input id="ccnum" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="23"></div>
+      <div class="f"><label for="ccexp">Expiry (MM/YY)</label><input id="ccexp" inputmode="numeric" autocomplete="cc-exp" placeholder="08/29" maxlength="5"></div>
+      <div class="f"><label for="cccvc">CVC</label><input id="cccvc" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4"></div></div>
+      <div class="hint">Visa, Mastercard, American Express and Interac Debit (Visa Debit / Mastercard Debit) accepted.</div>`;
+    $("#ccnum").addEventListener("input",e=>{const v=e.target.value.replace(/\D/g,"").slice(0,19);e.target.value=v.replace(/(.{4})/g,"$1 ").trim();});
+    $("#ccexp").addEventListener("input",e=>{let v=e.target.value.replace(/\D/g,"").slice(0,4);if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);e.target.value=v;});
+    $("#cccvc").addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,4);});
+  } else {
+    const label={paypal:"PayPal",apple:"Apple Pay",samsung:"Samsung Pay"}[pay];
+    const how={paypal:"You'll sign in to PayPal in a secure window to approve the payment.",
+               apple:"Confirm with Face ID, Touch ID or your passcode on your Apple device.",
+               samsung:"Confirm with your fingerprint or PIN in Samsung Wallet on your phone."}[pay];
+    panel.innerHTML=`<div class="hint">${how}</div><div class="hint">You'll be charged <b class="num">${amt}</b> when you place the order.</div>`;
+  }
+  renderSummary();
+}
+function luhn(n){ let s=0,alt=false; for(let i=n.length-1;i>=0;i--){let d=+n[i]; if(alt){d*=2;if(d>9)d-=9;} s+=d; alt=!alt;} return s%10===0; }
+
+function renderSummary(){
+  const t=totals();
+  const label={card:"Pay",paypal:"Pay with PayPal",apple:"Pay with Apple Pay",samsung:"Pay with Samsung Pay"}[pay];
+  const slotTxt = slot ? `${dayName(dayList()[slot.day],slot.day)}, ${fmtH(slot.h)} – ${fmtH(slot.h+2)}` : "Choose a window";
+  $("#summary").innerHTML = `<h3 style="margin:0;font-family:var(--display);font-weight:800">Order summary</h3>
+    ${Object.entries(cart).map(([id,q])=>`<div class="mini"><span>${q} × ${BY[id].name}</span><span class="num">${money(BY[id].price*q)}</span></div>`).join("")}
+    <hr style="border:0;border-top:1px solid var(--line);width:100%;margin:4px 0">
+    <div class="trow"><span>Subtotal</span><span class="num">${money(t.sub)}</span></div>
+    <div class="trow"><span>Delivery</span><span class="num">${t.fee?money(t.fee):"Free"}</span></div>
+    <div class="trow"><span>HST (13%)</span><span class="num">${money(t.tax)}</span></div>
+    <div class="trow grand"><span>Total</span><span class="num">${money(t.total)}</span></div>
+    <div class="trow"><span>Delivery</span><span>${slotTxt}</span></div>
+    <button class="${pay==="card"?"btn wide":"wallet"}" id="placeOrder">${label} ${money(t.total)}</button>
+    <div class="msg bad" id="coMsg" aria-live="polite"></div>`;
+}
+
+function validPC(v){ return /^(L8[A-Z]|L9[A-Z]|L0R)\s?\d[A-Z]\d$/i.test(v.trim()) || /^(L8|L9|L0R)/i.test(v.trim()) && v.replace(/\s/g,"").length===6 && /^[A-Z]\d[A-Z]\d[A-Z]\d$/i.test(v.replace(/\s/g,"")); }
+
+function placeOrder(){
+  const msg=$("#coMsg"); const errs=[];
+  const need=["name","street","phone","email"];
+  need.forEach(id=>{const el=$("#"+id); const bad=!el.value.trim(); el.setAttribute("aria-invalid",bad); if(bad) errs.push(id);});
+  const pc=$("#pc2"); const pcBad=!validPC(pc.value); pc.setAttribute("aria-invalid",pcBad);
+  if(errs.length) { msg.textContent="Fill in your name, street address, phone and email."; return; }
+  if(pcBad){ msg.textContent="That postal code is outside our Hamilton delivery area. Use a code starting with L8, L9 or L0R."; return; }
+  if(!/^\S+@\S+\.\S+$/.test($("#email").value)){ $("#email").setAttribute("aria-invalid",true); msg.textContent="Check your email address."; return; }
+  if(!slot){ msg.textContent="Choose a delivery window."; return; }
+  if(pay==="card"){
+    const n=$("#ccnum").value.replace(/\s/g,""), exp=$("#ccexp").value, cvc=$("#cccvc").value;
+    if(!$("#ccname").value.trim()){ msg.textContent="Enter the name on the card."; return; }
+    if(n.length<13||!luhn(n)){ $("#ccnum").setAttribute("aria-invalid",true); msg.textContent="That card number isn't valid. Check the digits and try again."; return; }
+    const m=exp.match(/^(\d{2})\/(\d{2})$/); const now=new Date();
+    if(!m||+m[1]<1||+m[1]>12||new Date(2000+ +m[2], +m[1], 0) < new Date(now.getFullYear(),now.getMonth(),1)){ $("#ccexp").setAttribute("aria-invalid",true); msg.textContent="The expiry date is invalid or has passed."; return; }
+    if(cvc.length<3){ $("#cccvc").setAttribute("aria-invalid",true); msg.textContent="Enter the 3 or 4 digit security code."; return; }
+  }
+  const t=totals(), num="HAM-"+Math.floor(100000+Math.random()*900000);
+  const payTxt = pay==="card" ? "Card ending "+$("#ccnum").value.replace(/\s/g,"").slice(-4) : {paypal:"PayPal",apple:"Apple Pay",samsung:"Samsung Pay"}[pay];
+  const when = `${dayName(dayList()[slot.day],slot.day)}, ${fmtH(slot.h)} – ${fmtH(slot.h+2)}`;
+  const addr = `${$("#street").value.trim()}, ${$("#area").value}, Hamilton ON ${$("#pc2").value.toUpperCase()}`;
+  $("#coBody").innerHTML = `<div class="done" style="grid-column:1/-1">
+    <span class="pill">Order confirmed</span>
+    <p class="big">See you ${slot.day===0?"tonight":"soon"}.</p>
+    <p class="hint">A receipt is on its way to ${$("#email").value.replace(/</g,"&lt;")}. We'll text ${$("#phone").value.replace(/</g,"&lt;")} when your driver is 15 minutes out.</p>
+    <div class="card2">
+      <div class="trow"><span>Order</span><b class="num">${num}</b></div>
+      <div class="trow"><span>Window</span><b>${when}</b></div>
+      <div class="trow"><span>Address</span><span style="text-align:right">${addr.replace(/</g,"&lt;")}</span></div>
+      <div class="trow"><span>Paid with</span><span>${payTxt}</span></div>
+      <div class="trow grand"><span>Total</span><span class="num">${money(t.total)}</span></div>
+    </div>
+    <button class="btn" id="newOrder">Start a new order</button></div>`;
+  cart={}; save(); renderHeader();
+}
+
+function renderAll(){ renderGrid(); renderDrawer(); renderHeader(); if(!$("#checkout").hidden && $("#summary")) renderSummary(); }
+
+/* events */
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.cat){ cat=b.dataset.cat; renderCats(); renderGrid(); }
+  else if(b.dataset.inc){ const id=b.dataset.inc; const first=!cart[id]; setQty(id,(cart[id]||0)+1); if(first) toast(`Added ${BY[id].name}`); }
+  else if(b.dataset.dec){ setQty(b.dataset.dec,(cart[b.dataset.dec]||0)-1); }
+  else if(b.dataset.day!==undefined){ dayIdx=+b.dataset.day; renderSlots(); }
+  else if(b.dataset.slot){ slot={day:dayIdx,h:+b.dataset.slot}; renderSlots(); renderSummary(); }
+  else if(b.dataset.pay){ pay=b.dataset.pay; renderPay(); }
+  else if(b.id==="openCart"){ openDrawer(true); }
+  else if(b.id==="closeCart"){ openDrawer(false); }
+  else if(b.id==="goCheckout"){ openDrawer(false); openCheckout(); }
+  else if(b.id==="backToShop"){ $("#checkout").hidden=true; document.body.style.overflow=""; }
+  else if(b.id==="placeOrder"){ placeOrder(); }
+  else if(b.id==="newOrder"){ location.reload(); }
+});
+$("#scrim").addEventListener("click",()=>openDrawer(false));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") openDrawer(false); });
+$("#q").addEventListener("input",e=>{ query=e.target.value; if(query) {cat="All"; renderCats();} renderGrid(); });
+$("#pcForm").addEventListener("submit",e=>{ e.preventDefault(); const v=$("#pc").value; const m=$("#pcMsg");
+  if(validPC(v)){ m.className="msg ok"; m.textContent=`Yes, we deliver to ${v.toUpperCase()}. ${new Date().getHours()<CUTOFF_H?"Same-day windows are open.":"Next window: tomorrow from 10:00 am."}`; $("#pc2").value=v.toUpperCase(); }
+  else { m.className="msg bad"; m.textContent="We only deliver within Hamilton right now (postal codes starting L8, L9 or L0R)."; } });
+
+function openDrawer(on){ $("#drawer").hidden=!on; $("#scrim").hidden=!on; if(on) $("#closeCart").focus(); }
+function openCheckout(){
+  const days=dayList(); dayIdx = slotsFor(0).some(s=>s.ok)?0:1;
+  const first=slotsFor(dayIdx).find(s=>s.ok); slot = first?{day:dayIdx,h:first.h}:null;
+  $("#checkout").hidden=false; document.body.style.overflow="hidden"; $("#checkout").scrollTop=0;
+  renderSlots(); renderPay();
+}
+
+/* seed an example cart on first visit so the drawer and checkout show working state */
+if(!Object.keys(cart).length){ let seeded=false; try{ seeded=localStorage.getItem("em-seeded"); localStorage.setItem("em-seeded","1"); }catch(e){}
+  if(!seeded){ cart={p1:1,d1:1,b1:1,m1:1,t3:1,p7:2}; save(); } }
+
+renderCats(); renderCutoff(); renderAll(); setInterval(renderCutoff,60000);
+})();
+</script>
+
+</body></html>
